@@ -1,0 +1,27 @@
+#include "Resource.hxx"
+
+CLIME_ICON ICON winclime.ico
+
+MAINMENU MENU DISCARDABLE 
+{
+    POPUP "File"
+    {
+        MENUITEM "Quit",IDM_QUIT
+    }
+    POPUP "Help"
+    {
+        MENUITEM "About",IDM_ABOUT
+    }
+}
+
+STRINGTABLE {
+    IDS_REGWORDDLG_TITLE        "単語登録"
+    IDS_REGWORDDLG_PROMPT       "パターン %s に対する単語を入力してください"
+    IDS_WEBDEFDLG_TITLE         "Web辞書連携"
+    IDS_WEBDEFDLG_PROMPT        "Web検索したい用語を入力してください"
+    IDS_ERRMSG_ALREADY_LAUNCHED "winclime はすでに起動されています。"
+    IDS_ERRMSG_MANUAL_MISSING   "マニュアルページ %s が見つかりません。"
+    IDS_MSG_VERSION_TITLE       "About winclime"
+    IDS_MSG_VERSION_FORMAT      "CLIME for Windows version %d.%03d\nengine version %s\n(C)2024 show-matz\nbased on works by (C)2001,2002 Toshiyuki Masui"
+}
+

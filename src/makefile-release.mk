@@ -1,0 +1,16 @@
+
+TARGETDIR = release
+DEPLOYDIR = ../../../Tools/clime
+PACKAGEDIR = ../package
+TARGET = winclime.exe
+
+BASICOPTS = -O
+DEFINES = -D_UNICODE -DUNICODE -DNDEBUG -DWINCLIME_MAJOR_VER=0 -DWINCLIME_MINOR_VER=900 -L.
+
+
+MOREOPTS =
+
+OPTINC = 
+OPTLIBS =
+
+include makefile-core.mk

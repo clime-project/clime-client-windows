@@ -1,0 +1,15 @@
+
+TARGETDIR = debug
+DEPLOYDIR = ../../../user/bin
+TARGET = winclimeDB.exe
+
+BASICOPTS = -g
+DEFINES = -D_UNICODE -DUNICODE -DWINCLIME_MAJOR_VER=0 -DWINCLIME_MINOR_VER=900 -L.
+
+
+MOREOPTS =
+
+OPTINC = 
+OPTLIBS =
+
+include makefile-core.mk
