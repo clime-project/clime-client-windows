@@ -129,7 +129,7 @@ constexpr const unsigned char HOTKEY_ALT_F01 = 0xE1;
 //constexpr const unsigned char HOTKEY_ALT_F09 = 0xE9;
 //constexpr const unsigned char HOTKEY_ALT_F10 = 0xEA;
 //constexpr const unsigned char HOTKEY_ALT_F11 = 0xEB;
-//constexpr const unsigned char HOTKEY_ALT_F12 = 0xEC;
+constexpr const unsigned char HOTKEY_ALT_F12 = 0xEC;
 
 // 0xF* : Function ------------------------------------------
 constexpr const unsigned char HOTKEY_F01    = 0xF1;
@@ -160,6 +160,7 @@ namespace clime {
                                                   m_pTxtBox( new TextBox{ cfg } ),
                                                   m_pLstBox( new ListBox{ cfg } ),
                                                   m_pCands( new Candidates{} ),
+                                                  m_lastResult( std::wstring{} ),
                                                   m_bIndexing( cfg.Indexing() ),
                                                   m_bDirectKeying( cfg.DirectKey() ),
                                                   m_baseHotKeys(),
@@ -232,6 +233,7 @@ namespace clime {
         m_keyHandlers[HOTKEY_F01]            = &clime::MainWindow::OnHelpKey;
         m_keyHandlers[HOTKEY_F09]            = &clime::MainWindow::OnNextTheme;
         m_keyHandlers[HOTKEY_ALT_F01]        = &clime::MainWindow::OnVersionKey;
+        m_keyHandlers[HOTKEY_ALT_F12]        = &clime::MainWindow::OnRecallResult;
 
         for( unsigned char key = HOTKEY_CTRL_0; key <= HOTKEY_CTRL_9; ++key )
             m_keyHandlers[key] = &clime::MainWindow::OnCtrlNumber;
@@ -561,6 +563,7 @@ namespace clime {
 
     bool MainWindow::InsertText() {
 
+        bool result = true;
         const wchar_t* p;
         uint32_t sendMethod = SelectSendMethod( &p );
 
@@ -588,7 +591,6 @@ namespace clime {
 //          if( p ) {
 //              WinAPI::MessageBox( 0, p, L"", MB_ICONEXCLAMATION | MB_OK );
 //          }
-            return true;
 
         // 上記以外であれば、クリップボード経由で指定されたキーバインドでの貼り付けを試行
         } else {
@@ -618,8 +620,13 @@ namespace clime {
                 SendMethod::GetPastekey( sendMethod, bucky1, bucky2, key );
                 SimulateKeyEvent( key, bucky1, bucky2 );
             }
-            return result;
         }
+        if( result ) {
+            const wchar_t* pTop = m_pTxtBox->GetText();
+            const wchar_t* pEnd = pTop + m_pTxtBox->Length();
+            m_lastResult = std::wstring{ pTop, pEnd };
+        }
+        return result;
     }
 
     void MainWindow::SetupRegion( HWND hwnd ) {
@@ -1267,6 +1274,16 @@ namespace clime {
         m_charHotKeys.Enable( m_hWnd );
     }
 
+    void MainWindow::OnRecallResult( HWND hwnd, int /*keyCode*/, DrawMode& mode ) {
+        if( m_lastResult.empty() == false && m_pTxtBox->Empty() == true ) {
+            if( m_bConverting )
+                ResetConv( hwnd );
+            m_pTxtBox->Clear();
+            m_pTxtBox->Insert( m_lastResult.c_str() );
+        }
+        mode = DrawMode::OPAQ;
+    }
+
     void MainWindow::OnToggleIndexing( HWND /*hwnd*/, int /*keyCode*/, DrawMode& mode ) {
         m_bIndexing = !m_bIndexing;
         mode = DrawMode::OPAQ;
@@ -1408,6 +1425,7 @@ namespace clime {
         m_charHotKeys.AddKey( HOTKEY_F01,        0,           VK_F1    );
         m_charHotKeys.AddKey( HOTKEY_F09,        0,           VK_F9    );
         m_charHotKeys.AddKey( HOTKEY_ALT_F01,    MOD_ALT,     VK_F1    );
+        m_charHotKeys.AddKey( HOTKEY_ALT_F12,    MOD_ALT,     VK_F12   );
 
         for( int code = 'A'; code <= 'Z'; ++code )
             m_charHotKeys.AddKey( code+0x20, 0, code );

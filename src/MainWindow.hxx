@@ -97,6 +97,7 @@ namespace clime {
         void OnNextTheme( HWND hwnd, int keyCode, DrawMode& mode );
         void OnHelpKey( HWND hwnd, int keyCode, DrawMode& mode );
         void OnVersionKey( HWND hwnd, int keyCode, DrawMode& mode );
+        void OnRecallResult( HWND hwnd, int keyCode, DrawMode& mode );
         void OnToggleIndexing( HWND hwnd, int keyCode, DrawMode& mode );
         void OnToggleDirectKey( HWND hwnd, int keyCode, DrawMode& mode );
 
@@ -127,6 +128,7 @@ namespace clime {
         TextBox*        m_pTxtBox;
         ListBox*        m_pLstBox;
         Candidates*     m_pCands;
+        std::wstring    m_lastResult;
         bool            m_bIndexing;
         bool            m_bDirectKeying;
         bool            m_bConverting;
