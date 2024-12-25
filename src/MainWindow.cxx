@@ -127,7 +127,7 @@ constexpr const unsigned char HOTKEY_ALT_F01 = 0xE1;
 //constexpr const unsigned char HOTKEY_ALT_F07 = 0xE7;
 //constexpr const unsigned char HOTKEY_ALT_F08 = 0xE8;
 //constexpr const unsigned char HOTKEY_ALT_F09 = 0xE9;
-//constexpr const unsigned char HOTKEY_ALT_F10 = 0xEA;
+constexpr const unsigned char HOTKEY_ALT_F10 = 0xEA;
 //constexpr const unsigned char HOTKEY_ALT_F11 = 0xEB;
 constexpr const unsigned char HOTKEY_ALT_F12 = 0xEC;
 
@@ -233,6 +233,7 @@ namespace clime {
         m_keyHandlers[HOTKEY_F01]            = &clime::MainWindow::OnHelpKey;
         m_keyHandlers[HOTKEY_F09]            = &clime::MainWindow::OnNextTheme;
         m_keyHandlers[HOTKEY_ALT_F01]        = &clime::MainWindow::OnVersionKey;
+        m_keyHandlers[HOTKEY_ALT_F10]        = &clime::MainWindow::OnCheckTargetName;
         m_keyHandlers[HOTKEY_ALT_F12]        = &clime::MainWindow::OnRecallResult;
 
         for( unsigned char key = HOTKEY_CTRL_0; key <= HOTKEY_CTRL_9; ++key )
@@ -594,27 +595,7 @@ namespace clime {
 
         // 上記以外であれば、クリップボード経由で指定されたキーバインドでの貼り付けを試行
         } else {
-            if( !WinAPI::OpenClipboard( NULL ) )
-                return false;
-            if( !WinAPI::EmptyClipboard() ) {
-                WinAPI::CloseClipboard();
-                return false;
-            }
-            const wchar_t* pTop = m_pTxtBox->GetText();
-            const wchar_t* pEnd = pTop + m_pTxtBox->Length();
-            int byteLen = sizeof(wchar_t) * ((pEnd - pTop) + 1);
-            HGLOBAL uniHandle = WinAPI::GlobalAlloc( GHND, byteLen ); {
-                auto pBuf = reinterpret_cast<wchar_t*>( WinAPI::GlobalLock( uniHandle ) );
-                std::copy( pTop, pEnd, pBuf );
-                pBuf[pEnd - pTop] = 0;
-                WinAPI::GlobalUnlock( uniHandle );
-            }
-            bool result = true;
-            if( WinAPI::SetClipboardData( CF_UNICODETEXT, uniHandle ) == NULL ) {
-                WinAPI::GlobalFree( uniHandle );
-                result = false;
-            }
-            WinAPI::CloseClipboard();
+            result = SetTextToClipboard( m_pTxtBox->GetText(), m_pTxtBox->Length() );
             if( result ) {
                 int32_t bucky1, bucky2, key;
                 SendMethod::GetPastekey( sendMethod, bucky1, bucky2, key );
@@ -1274,6 +1255,16 @@ namespace clime {
         m_charHotKeys.Enable( m_hWnd );
     }
 
+    void MainWindow::OnCheckTargetName( HWND hwnd, int /*keyCode*/, DrawMode& mode ) {
+        const wchar_t* pModuleName;
+        SelectSendMethod( &pModuleName );
+        if( m_bConverting )
+            ResetConv( hwnd );
+        m_pTxtBox->Clear();
+        m_pTxtBox->Insert( pModuleName );
+        mode = DrawMode::OPAQ;
+    }
+
     void MainWindow::OnRecallResult( HWND hwnd, int /*keyCode*/, DrawMode& mode ) {
         if( m_lastResult.empty() == false && m_pTxtBox->Empty() == true ) {
             if( m_bConverting )
@@ -1307,6 +1298,8 @@ namespace clime {
             for( uint32_t i = 0; i < size; ++i ) {
                 if( s_imageName[i] == L'\\' )
                     p = s_imageName + i + 1;
+                if( s_imageName[i] == 0 )
+                    break;
             }
         }
         return p;
@@ -1425,6 +1418,7 @@ namespace clime {
         m_charHotKeys.AddKey( HOTKEY_F01,        0,           VK_F1    );
         m_charHotKeys.AddKey( HOTKEY_F09,        0,           VK_F9    );
         m_charHotKeys.AddKey( HOTKEY_ALT_F01,    MOD_ALT,     VK_F1    );
+        m_charHotKeys.AddKey( HOTKEY_ALT_F10,    MOD_ALT,     VK_F10   );
         m_charHotKeys.AddKey( HOTKEY_ALT_F12,    MOD_ALT,     VK_F12   );
 
         for( int code = 'A'; code <= 'Z'; ++code )
@@ -1527,4 +1521,29 @@ namespace clime {
         m_charHotKeys.Enable( m_hWnd );
         return ret;
     }
+
+    bool MainWindow::SetTextToClipboard( const wchar_t* pText, uint32_t length ) {
+        const wchar_t* pEnd = pText + length;
+        if( !WinAPI::OpenClipboard( NULL ) )
+            return false;
+        if( !WinAPI::EmptyClipboard() ) {
+            WinAPI::CloseClipboard();
+            return false;
+        }
+        int byteLen = sizeof(wchar_t) * ((pEnd - pText) + 1);
+        HGLOBAL uniHandle = WinAPI::GlobalAlloc( GHND, byteLen ); {
+            auto pBuf = reinterpret_cast<wchar_t*>( WinAPI::GlobalLock( uniHandle ) );
+            std::copy( pText, pEnd, pBuf );
+            pBuf[pEnd - pText] = 0;
+            WinAPI::GlobalUnlock( uniHandle );
+        }
+        bool result = true;
+        if( WinAPI::SetClipboardData( CF_UNICODETEXT, uniHandle ) == NULL ) {
+            WinAPI::GlobalFree( uniHandle );
+            result = false;
+        }
+        WinAPI::CloseClipboard();
+        return result;
+    }
+
 }

@@ -97,6 +97,7 @@ namespace clime {
         void OnNextTheme( HWND hwnd, int keyCode, DrawMode& mode );
         void OnHelpKey( HWND hwnd, int keyCode, DrawMode& mode );
         void OnVersionKey( HWND hwnd, int keyCode, DrawMode& mode );
+        void OnCheckTargetName( HWND hwnd, int keyCode, DrawMode& mode );
         void OnRecallResult( HWND hwnd, int keyCode, DrawMode& mode );
         void OnToggleIndexing( HWND hwnd, int keyCode, DrawMode& mode );
         void OnToggleDirectKey( HWND hwnd, int keyCode, DrawMode& mode );
@@ -109,6 +110,7 @@ namespace clime {
         void RegisterHotKeys();
         bool DoInputBox( const wchar_t* pTitle,
                          const wchar_t* pPrompt, wchar_t* pBuf, uint32_t bufLen );
+        bool SetTextToClipboard( const wchar_t* pText, uint32_t length );
 
     private:
         virtual void OnChangePosition( HWND hwnd, WindowMover::Position pos );
