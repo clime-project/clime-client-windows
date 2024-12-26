@@ -87,6 +87,7 @@ namespace clime {
         void OnSpaceKey( HWND hwnd, int keyCode, DrawMode& mode );
         void OnEnterKey( HWND hwnd, int keyCode, DrawMode& mode );
         void OnCursorKey( HWND hwnd, int keyCode, DrawMode& mode );
+        void OnPgUpDownKey( HWND hwnd, int keyCode, DrawMode& mode );
         void OnHomeKey( HWND hwnd, int keyCode, DrawMode& mode );
         void OnEndKey( HWND hwnd, int keyCode, DrawMode& mode );
         void OnCtrlSemicolon( HWND hwnd, int keyCode, DrawMode& mode );

@@ -116,6 +116,8 @@ constexpr const unsigned char HOTKEY_BACKSP = 0xC8;
 constexpr const unsigned char HOTKEY_SPACE  = 0xC9;
 constexpr const unsigned char HOTKEY_CPSLCK = 0xC0;
 constexpr const unsigned char HOTKEY_ESCAPE = 0xCA;
+constexpr const unsigned char HOTKEY_PGUP   = 0xCB;
+constexpr const unsigned char HOTKEY_PGDOWN = 0xCC;
 
 // 0xE* : Alt + Function ------------------------------------
 constexpr const unsigned char HOTKEY_ALT_F01 = 0xE1;
@@ -225,6 +227,8 @@ namespace clime {
         m_keyHandlers[HOTKEY_UP]             = &clime::MainWindow::OnCursorKey;
         m_keyHandlers[HOTKEY_RIGHT]          = &clime::MainWindow::OnCursorKey;
         m_keyHandlers[HOTKEY_DOWN]           = &clime::MainWindow::OnCursorKey;
+        m_keyHandlers[HOTKEY_PGUP]           = &clime::MainWindow::OnPgUpDownKey;
+        m_keyHandlers[HOTKEY_PGDOWN]         = &clime::MainWindow::OnPgUpDownKey;
         m_keyHandlers[HOTKEY_HOME]           = &clime::MainWindow::OnHomeKey;
         m_keyHandlers[HOTKEY_END]            = &clime::MainWindow::OnEndKey;
         m_keyHandlers[HOTKEY_CTRL_SEMICOLON] = &clime::MainWindow::OnCtrlSemicolon;
@@ -1094,6 +1098,39 @@ namespace clime {
         MoveToCursor( hwnd, m_config, m_wndWidth, m_wndHeight );
     }
 
+    void MainWindow::OnPgUpDownKey( HWND hwnd, int keyCode, DrawMode& mode ) {
+        mode = DrawMode::OPAQ;
+        int vkey = 0;
+        switch( keyCode ) {
+        case HOTKEY_PGUP:
+            if( !(m_inputs.empty() && m_pCands->Empty()) ) {
+                uint32_t& sel = m_pCands->Selection();
+                if( 0 < sel ) {
+                    uint32_t rowCount  = m_config.GetListRowCount();
+                    sel = (sel < rowCount) ? 0 : (sel - rowCount + 1);
+                    return;
+                }
+            }
+            vkey = VK_PRIOR;
+            break;
+        case HOTKEY_PGDOWN:
+            if( !(m_inputs.empty() && m_pCands->Empty()) ) {
+                uint32_t& sel = m_pCands->Selection();
+                uint32_t rowCount  = m_config.GetListRowCount();
+                if( !( m_pCands->Size() < (sel+rowCount-1) ) ) {
+                    sel += (rowCount-1);
+                    return;
+                }
+            }
+            vkey = VK_NEXT;
+            break;
+        }
+        //ここに到達した場合、ターゲットウィンドウにキー操作を転送
+        mode = DrawMode::KEEP;
+        SimulateKeyEvent( hwnd, keyCode, vkey );
+        MoveToCursor( hwnd, m_config, m_wndWidth, m_wndHeight );
+    }
+
     void MainWindow::OnHomeKey( HWND hwnd, int /*keyCode*/, DrawMode& mode ) {
         if( m_pTxtBox->Empty() == false && m_inputs.empty() )
             OnCtrlA( hwnd, HOTKEY_CTRL_A, mode );
@@ -1388,8 +1425,10 @@ namespace clime {
         m_ctrlHotKeys.AddKey( HOTKEY_UP,     0,         VK_UP );
         m_ctrlHotKeys.AddKey( HOTKEY_RIGHT,  0,      VK_RIGHT );
         m_ctrlHotKeys.AddKey( HOTKEY_DOWN,   0,       VK_DOWN );
-        m_ctrlHotKeys.AddKey( HOTKEY_HOME,   0,       VK_HOME );
-        m_ctrlHotKeys.AddKey( HOTKEY_END,    0,        VK_END );
+        m_ctrlHotKeys.AddKey( HOTKEY_PGUP,   0,      VK_PRIOR ); // PageUp
+        m_ctrlHotKeys.AddKey( HOTKEY_PGDOWN, 0,       VK_NEXT ); // PageDown
+        m_ctrlHotKeys.AddKey( HOTKEY_HOME,   0,       VK_HOME ); // Home
+        m_ctrlHotKeys.AddKey( HOTKEY_END,    0,        VK_END ); // End
 
         // emacs hot keys ------------------------------------------------------
         if( m_config.EmacsKeyBind() ) {
